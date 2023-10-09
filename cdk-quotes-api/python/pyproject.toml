@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "hello-cdk"
+version = "1.6.1"
+description = "hello-cdk"
+authors = ["glennlum <glennlum_@hotmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+boto3 = "^1.28.49"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
