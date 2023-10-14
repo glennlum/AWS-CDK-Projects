@@ -1,8 +1,10 @@
-import json
+import logging
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 
 def main(event, context):
-    print('Receiving message from SQS')
+    logger.info(event)
     for record in event["Records"]:
         message = record["body"]
-        print(message)
+        logger.info(message)

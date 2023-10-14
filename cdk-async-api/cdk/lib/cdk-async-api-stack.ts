@@ -58,8 +58,11 @@ export class CdkAsyncApiStack extends cdk.Stack {
       description: "ASYNC API",
     });
 
-    // post method
-    api.root.addMethod("POST", sendMessageIntegration, {
+    //.../enqueue
+    const enqueuePath = api.root.addResource("enqueue");
+
+    //POST.../enqueue
+    enqueuePath.addMethod("POST", sendMessageIntegration, {
       methodResponses: [
         {
           statusCode: "400",
