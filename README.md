@@ -16,6 +16,7 @@ wip
 ## 4. cdk-async-api
 **APIGateway -> SQS -> Lambda**
 - API Gateway routes requests to an SQS queue, triggering a Lambda function for processing in this serverless architecture. [[source](https://betterprogramming.pub/how-to-integrate-api-gateway-and-sqs-with-aws-cdk-14e74e7de5ba)]
+- Design intent: asynchronous processing
 
 **Instructions**
 - Send a POST request to /enqueue containing a message.
@@ -32,3 +33,8 @@ wip
 
 {"SendMessageResponse":{"ResponseMetadata":{"RequestId":"5cbe815f-8db4-5c39-a834-dcfbd53c1f5c"},"SendMessageResult":{"MD5OfMessageAttributes":null,"MD5OfMessageBody":"0046701aed8ee5c7de6c01430556b13e","MD5OfMessageSystemAttributes":null,"MessageId":"59c52602-131d-420c-8701-7d8f275f36ac","SequenceNumber":null}}}
 ```
+## 5. cdk-queue-base-load-levelling-api
+**APIGateway -> SQS -> Lambda**
+- Implements a Queue-Based Load-Leveling pattern [[source](https://majestic.cloud/integrating-aws-api-gateway-with-sqs/)]. This approach prevents overwhelming downstream systems with excessive requests.
+- Design intent: decoupling, fault tolerance, scaling and performance
+
