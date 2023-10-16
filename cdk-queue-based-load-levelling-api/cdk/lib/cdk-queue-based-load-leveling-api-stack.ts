@@ -29,7 +29,18 @@ export class CdkQueueBasedLoadLevelingApiStack extends cdk.Stack {
     });
 
     // Grant sqs:SendMessage* to integration role
+
+    //Option 1 (Error: AccessDenied)
     queue.grantSendMessages(integrationRole);
+
+    //Option 2 (Error: AccessDenied)
+    // const policy = new iam.PolicyStatement({
+    //   actions: ["sqs:SendMessage"],
+    //   effect: iam.Effect.ALLOW,
+    //   resources: [queue.queueArn],
+    // });
+
+    integrationRole.addToPolicy(policy);
 
     // Define the integration request VTL mapping template
     const integrationRequestTemplate = `
@@ -95,7 +106,7 @@ export class CdkQueueBasedLoadLevelingApiStack extends cdk.Stack {
           statusCode: "200",
           responseModels: {
             "application/json": new ApiGW.Model(this, "ResponseModel", {
-              restApi:api,
+              restApi: api,
               contentType: "application/json",
               modelName: "ResponseModel",
               schema: {
