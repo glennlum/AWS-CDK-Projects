@@ -19,7 +19,7 @@ export class CdkQueueBasedLoadLevelingApiStack extends cdk.Stack {
     });
 
     // Create an SQS queue
-    const queue = new sqs.Queue(this, "queue", {
+    const queue = new sqs.Queue(this, "message-queue", {
       encryption: sqs.QueueEncryption.KMS_MANAGED,
     });
 
@@ -37,13 +37,13 @@ export class CdkQueueBasedLoadLevelingApiStack extends cdk.Stack {
       "httpMethod": "$context.httpMethod",
       "resourcePath": "$context.resourcePath",
       "body" : $input.json('$'),
-      "query" : {
+      "queryStringParameters" : {
         #foreach($param in $input.params().querystring.keySet())
           "$param" : "$util.escapeJavaScript($input.params().querystring.get($param))"
           #if($foreach.hasNext),#end
         #end
       },
-      "path" : {
+      "pathParameters" : {
         #foreach($param in $input.params().path.keySet())
           "$param" : "$util.escapeJavaScript($input.params().path.get($param))"
           #if($foreach.hasNext),#end
@@ -81,33 +81,32 @@ export class CdkQueueBasedLoadLevelingApiStack extends cdk.Stack {
     });
 
     // Create new resources
-    const resource0 = api.root.resourceForPath("resource0/{param3}");
-    const resource1 = api.root.resourceForPath("resource1/{param6}");
-    const resource2 = api.root.resourceForPath("resource2/{param9}");
+    const userPath = api.root.resourceForPath("user/{userId}");
 
     // Add methods to the new resources
-    resource0.addMethod("GET", sqsIntegration, {
+    userPath.addMethod("POST", sqsIntegration, {
       requestParameters: {
+        "method.request.path.userId": true,
         "method.request.querystring.param1": true,
         "method.request.querystring.param2": true,
-        "method.request.path.param3": true,
       },
-    });
-
-    resource1.addMethod("POST", sqsIntegration, {
-      requestParameters: {
-        "method.request.querystring.param4": true,
-        "method.request.querystring.param5": true,
-        "method.request.path.param6": true,
-      },
-    });
-
-    resource2.addMethod("PATCH", sqsIntegration, {
-      requestParameters: {
-        "method.request.querystring.param7": true,
-        "method.request.querystring.param8": true,
-        "method.request.path.param9": true,
-      },
+      methodResponses: [
+        {
+          statusCode: "200",
+          responseModels: {
+            "application/json": new ApiGW.Model(this, "ResponseModel", {
+              restApi:api,
+              contentType: "application/json",
+              modelName: "ResponseModel",
+              schema: {
+                schema: ApiGW.JsonSchemaVersion.DRAFT4,
+                title: "responseModel",
+                type: ApiGW.JsonSchemaType.OBJECT,
+              },
+            }),
+          },
+        },
+      ],
     });
 
     // Define a lambda role
@@ -151,26 +150,5 @@ export class CdkQueueBasedLoadLevelingApiStack extends cdk.Stack {
         eventSourceArn: queue.queueArn,
       }
     );
-
-    // Cfn Outputs
-    new CfnOutput(this, "QueueConsumerFunctionName", {
-      value: lambdaFunction.functionName,
-      description: "QueueConsumerFunction function name",
-    });
-
-    new CfnOutput(this, "SQSqueueName", {
-      value: queue.queueName,
-      description: "SQS queue name",
-    });
-
-    new CfnOutput(this, "SQSqueueARN", {
-      value: queue.queueArn,
-      description: "SQS queue ARN",
-    });
-
-    new CfnOutput(this, "SQSqueueURL", {
-      value: queue.queueUrl,
-      description: "SQS queue URL",
-    });
   }
 }
