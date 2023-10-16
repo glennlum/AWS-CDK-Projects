@@ -30,17 +30,16 @@ export class CdkQueueBasedLoadLevelingApiStack extends cdk.Stack {
 
     // Grant sqs:SendMessage* to integration role
 
-    //Option 1 (Error: AccessDenied)
+    //Option 1 (Unresolved Error: AccessDenied)
     queue.grantSendMessages(integrationRole);
 
-    //Option 2 (Error: AccessDenied)
+    //Option 2 (Unresolved Error: AccessDenied)
     // const policy = new iam.PolicyStatement({
     //   actions: ["sqs:SendMessage"],
     //   effect: iam.Effect.ALLOW,
     //   resources: [queue.queueArn],
     // });
-
-    integrationRole.addToPolicy(policy);
+    //integrationRole.addToPolicy(policy);
 
     // Define the integration request VTL mapping template
     const integrationRequestTemplate = `
@@ -93,8 +92,11 @@ export class CdkQueueBasedLoadLevelingApiStack extends cdk.Stack {
 
     // Create new resources
     const userPath = api.root.resourceForPath("user/{userId}");
+    const orgPath = api.root.resourceForPath("org/{orgId}");
 
     // Add methods to the new resources
+
+    //POST.../user/{userId}
     userPath.addMethod("POST", sqsIntegration, {
       requestParameters: {
         "method.request.path.userId": true,
@@ -105,13 +107,69 @@ export class CdkQueueBasedLoadLevelingApiStack extends cdk.Stack {
         {
           statusCode: "200",
           responseModels: {
-            "application/json": new ApiGW.Model(this, "ResponseModel", {
+            "application/json": new ApiGW.Model(this, "PostUserResponseModel", {
               restApi: api,
               contentType: "application/json",
-              modelName: "ResponseModel",
+              modelName: "PostUserResponseModel",
               schema: {
                 schema: ApiGW.JsonSchemaVersion.DRAFT4,
-                title: "responseModel",
+                title: "PostUserResponseModel",
+                type: ApiGW.JsonSchemaType.OBJECT,
+              },
+            }),
+          },
+        },
+      ],
+    });
+
+    //DELETE.../user/{userId}
+    userPath.addMethod("DELETE", sqsIntegration, {
+      requestParameters: {
+        "method.request.path.userId": true,
+        "method.request.querystring.param1": true,
+        "method.request.querystring.param2": true,
+      },
+      methodResponses: [
+        {
+          statusCode: "200",
+          responseModels: {
+            "application/json": new ApiGW.Model(
+              this,
+              "DeleteUserResponseModel",
+              {
+                restApi: api,
+                contentType: "application/json",
+                modelName: "DeleteUserResponseModel",
+                schema: {
+                  schema: ApiGW.JsonSchemaVersion.DRAFT4,
+                  title: "DeleteUserResponseModel",
+                  type: ApiGW.JsonSchemaType.OBJECT,
+                },
+              }
+            ),
+          },
+        },
+      ],
+    });
+
+    //PATCH.../org/{orgId}
+    orgPath.addMethod("PATCH", sqsIntegration, {
+      requestParameters: {
+        "method.request.path.orgId": true,
+        "method.request.querystring.param1": true,
+        "method.request.querystring.param2": true,
+      },
+      methodResponses: [
+        {
+          statusCode: "200",
+          responseModels: {
+            "application/json": new ApiGW.Model(this, "PatchOrgResponseModel", {
+              restApi: api,
+              contentType: "application/json",
+              modelName: "PatchOrgResponseModel",
+              schema: {
+                schema: ApiGW.JsonSchemaVersion.DRAFT4,
+                title: "PatchOrgResponseModel",
                 type: ApiGW.JsonSchemaType.OBJECT,
               },
             }),

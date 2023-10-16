@@ -33,43 +33,46 @@ wip
 
 {"SendMessageResponse":{"ResponseMetadata":{"RequestId":"5cbe815f-8db4-5c39-a834-dcfbd53c1f5c"},"SendMessageResult":{"MD5OfMessageAttributes":null,"MD5OfMessageBody":"0046701aed8ee5c7de6c01430556b13e","MD5OfMessageSystemAttributes":null,"MessageId":"59c52602-131d-420c-8701-7d8f275f36ac","SequenceNumber":null}}}
 ```
-## 5. cdk-queue-base-load-levelling-api (wip)
+## 5. cdk-queue-based-load-levelling-api (wip)
 **APIGateway -> SQS -> Lambda**
 - Implements a Queue-Based Load-Leveling pattern [[source](https://majestic.cloud/integrating-aws-api-gateway-with-sqs/)]. This approach prevents overwhelming downstream systems with excessive requests.
 - Design intent: decoupling, fault tolerance, scaling and performance
 
+**Instructions**
+- Send requests to the following endpoints with two query string parameters and a message body of your choosing
+  - POST /user/{userId}
+  - DELETE /user/{userId}
+  - PATCH /org/{orgId}
+- The request is converted (by VTL template) into a JSON message and enqueued.
+- The enqueued message triggers a Lambda function, which logs it.
+
 **Sample request**
 ```
-POST /resource1/123?param4=hello&param5=world
-{
-     "sweet": "dreams"
-}
+POST /user/123?param1=value1&param2=value2
+
+{"hello":"world"}
 ```
 
 **Message enqueued**
 ```
 {
-    "httpMethod": "POST",
-    "resourcePath": "/resource1/{param6}",
-    "body": {
-        "sweet": "dreams"
-    },
-    "query": {
-        "param5": "world",
-        "param4": "hello"
-    },
-    "path": {
-        "param6": "123"
-    }
+  "httpMethod": "POST",
+  "resourcePath": "/user/{userId}",
+  "body": {
+    "hello": "world"
+  },
+  "queryStringParameters": {
+    "param1": "value1",
+    "param2": "value2"
+  },
+  "pathParameters": {
+    "userId": "123"
+  }
 }
 ```
 
-**Unresolved Errors**
+**Unresolved Issues**
+- It seems that there's an issue with the permissions that prevent the API Gateway from sending messages to the specified SQS queue.
 ```
-Sun Oct 15 13:41:13 UTC 2023 : Sending request to https://sqs.eu-west-1.amazonaws.com/565245842699/CdkQueueBasedLoadLevelingApiStack-queue276F7297-mGo7HiEGAALF
-Sun Oct 15 13:41:13 UTC 2023 : Received response. Status: 403, Integration latency: 2 ms
-Sun Oct 15 13:41:13 UTC 2023 : Endpoint response headers: {x-amzn-RequestId=e5c86bb5-46c3-5659-801a-3610a8fa4b32, Connection=close, Date=Sun, 15 Oct 2023 13:41:13 GMT, Content-Type=application/json, Content-Length=256}
-Sun Oct 15 13:41:13 UTC 2023 : Endpoint response body before transformations: {"Error":{"Code":"AccessDenied","Message":"Access to the resource https://sqs.eu-west-1.amazonaws.com/565245842699/CdkQueueBasedLoadLevelingApiStack-queue276F7297-mGo7HiEGAALF is denied.","Type":"Sender"},"RequestId":"e5c86bb5-46c3-5659-801a-3610a8fa4b32"}
-Sun Oct 15 13:41:13 UTC 2023 : Execution failed due to configuration error: Output mapping refers to an invalid method response: 200
-Sun Oct 15 13:41:13 UTC 2023 : Method completed with status: 500
+Mon Oct 16 16:30:12 UTC 2023 : Endpoint response body before transformations: {"Error":{"Code":"AccessDenied","Message":"Access to the resource https://sqs.eu-west-1.amazonaws.com/318261711672/CdkQueueBasedLoadLevelingApiStack-messagequeue0F03073E-LVJ2DvW9jNHO is denied.","Type":"Sender"},"RequestId":"8323777d-09ff-5d33-9534-2ada6eab6c10"}
 ```
