@@ -76,3 +76,5 @@ POST /user/123?param1=value1&param2=value2
 ```
 Mon Oct 16 16:30:12 UTC 2023 : Endpoint response body before transformations: {"Error":{"Code":"AccessDenied","Message":"Access to the resource https://sqs.eu-west-1.amazonaws.com/318261711672/CdkQueueBasedLoadLevelingApiStack-messagequeue0F03073E-LVJ2DvW9jNHO is denied.","Type":"Sender"},"RequestId":"8323777d-09ff-5d33-9534-2ada6eab6c10"}
 ```
+**TODOs**
+- The code snippet defines the request parameters and the successful response model, but doesn't provide explicit error handling or define error responses. For more precise control over error responses, you might consider defining additional methodResponses entries for various 4xx and 5xx status codes, and mapping them to appropriate error response models and integration response templates.
