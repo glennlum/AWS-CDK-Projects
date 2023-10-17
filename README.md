@@ -33,11 +33,10 @@ wip
 
 {"SendMessageResponse":{"ResponseMetadata":{"RequestId":"5cbe815f-8db4-5c39-a834-dcfbd53c1f5c"},"SendMessageResult":{"MD5OfMessageAttributes":null,"MD5OfMessageBody":"0046701aed8ee5c7de6c01430556b13e","MD5OfMessageSystemAttributes":null,"MessageId":"59c52602-131d-420c-8701-7d8f275f36ac","SequenceNumber":null}}}
 ```
-## 5. cdk-queue-based-load-levelling-api (wip)
+
+## 5. cdk-queue-based-load-levelling-api (discontinued)
 **APIGateway -> SQS -> Lambda**
 - Implements a Queue-Based Load-Leveling pattern [[source](https://majestic.cloud/integrating-aws-api-gateway-with-sqs/)]. This approach prevents overwhelming downstream systems with excessive requests.
-- Design intent: decoupling, fault tolerance, scaling and performance
-
 **Instructions**
 - Send requests to the following endpoints with two query string parameters and a message body of your choosing
   - POST /user/{userId}
@@ -45,14 +44,12 @@ wip
   - PATCH /org/{orgId}
 - The request is converted (by VTL template) into a JSON message and enqueued.
 - The enqueued message triggers a Lambda function, which logs it.
-
 **Sample request**
 ```
 POST /user/123?param1=value1&param2=value2
 
 {"hello":"world"}
 ```
-
 **Message enqueued**
 ```
 {
@@ -70,11 +67,20 @@ POST /user/123?param1=value1&param2=value2
   }
 }
 ```
-
-**Unresolved Issues**
-- It seems that there's an issue with the permissions that prevent the API Gateway from sending messages to the specified SQS queue.
+**Issues**
+It seems that there's an issue with the permissions that prevent the API Gateway from sending messages to the specified SQS queue.
 ```
 Mon Oct 16 16:30:12 UTC 2023 : Endpoint response body before transformations: {"Error":{"Code":"AccessDenied","Message":"Access to the resource https://sqs.eu-west-1.amazonaws.com/318261711672/CdkQueueBasedLoadLevelingApiStack-messagequeue0F03073E-LVJ2DvW9jNHO is denied.","Type":"Sender"},"RequestId":"8323777d-09ff-5d33-9534-2ada6eab6c10"}
 ```
+**Solutions**
+Given the requirement to change the payload of the request to the SQS service to `Action=SendMessage&MessageBody=payload`, you'll need to update the integrationRequestTemplate string in your code
+```
+const integrationRequestTemplate = `
+#set($body = $input.json('$'))
+Action=SendMessage&MessageBody=$util.urlEncode($body)`;
+```
 **TODOs**
-- The code snippet defines the request parameters and the successful response model, but doesn't provide explicit error handling or define error responses. For more precise control over error responses, you might consider defining additional methodResponses entries for various 4xx and 5xx status codes, and mapping them to appropriate error response models and integration response templates.
+The code snippet defines the request parameters and the successful response model, but doesn't provide explicit error handling or define error responses. For more precise control over error responses, you might consider defining additional methodResponses entries for various 4xx and 5xx status codes, and mapping them to appropriate error response models and integration response templates.
+
+**Discontinued**
+The solution for this project was deemed too complex and was subsequently replaced by Project 4.
